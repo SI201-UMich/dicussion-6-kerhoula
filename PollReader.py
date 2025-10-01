@@ -1,5 +1,4 @@
 import csv
-import os
 import unittest
 
 class PollReader:
@@ -9,8 +8,9 @@ class PollReader:
             'month': [],
             'date': [],
             'sample': [],
-            'harris': [],
-            'trump': []
+            'sample type': [],
+            'Harris result': [],
+            'Trump result': []
         }
 
     def build_data_dict(self):
@@ -21,39 +21,66 @@ class PollReader:
                 if len(row) < 5:
                     continue
                 self.data_dict['month'].append(row[0])
-                self.data_dict['date'].append(row[1])
-                self.data_dict['sample'].append(row[2])
-                self.data_dict['harris'].append(float(row[3]))
-                self.data_dict['trump'].append(float(row[4]))
+                self.data_dict['date'].append(int(row[1]))
+                # split sample into number + type
+                sample_parts = row[2].split()
+                if len(sample_parts) == 2:
+                    self.data_dict['sample'].append(int(sample_parts[0]))
+                    self.data_dict['sample type'].append(sample_parts[1])
+                else:
+                    self.data_dict['sample'].append(0)
+                    self.data_dict['sample type'].append("UNK")
+                self.data_dict['Harris result'].append(float(row[3]))
+                self.data_dict['Trump result'].append(float(row[4]))
 
     def highest_polling_candidate(self):
-        # compare average polling across all data
-        if not self.data_dict['harris'] or not self.data_dict['trump']:
+        if not self.data_dict['Harris result'] or not self.data_dict['Trump result']:
             return None
 
-        avg_harris = sum(self.data_dict['harris']) / len(self.data_dict['harris'])
-        avg_trump = sum(self.data_dict['trump']) / len(self.data_dict['trump'])
+        avg_harris = sum(self.data_dict['Harris result']) / len(self.data_dict['Harris result'])
+        avg_trump = sum(self.data_dict['Trump result']) / len(self.data_dict['Trump result'])
 
         if avg_harris > avg_trump:
-            return "Harris"
+            return f"Harris {avg_harris*100:.1f}%"
         elif avg_trump > avg_harris:
-            return "Trump"
+            return f"Trump {avg_trump*100:.1f}%"
         else:
-            return "Tie"
+            return f"Tie {avg_harris*100:.1f}%"
 
+    def likely_voter_polling_average(self):
+        harris_scores = []
+        trump_scores = []
+
+        for i in range(len(self.data_dict['sample type'])):
+            if self.data_dict['sample type'][i] == "LV":  # only LV rows
+                harris_scores.append(self.data_dict['Harris result'][i])
+                trump_scores.append(self.data_dict['Trump result'][i])
+
+        if not harris_scores or not trump_scores:
+            return 0.0, 0.0
+
+        harris_avg = sum(harris_scores) / len(harris_scores)
+        trump_avg = sum(trump_scores) / len(trump_scores)
+
+        return harris_avg, trump_avg
 
     def polling_history_change(self):
         """
-        Calculate the change in polling averages between the earliest and latest polls.
-
-        This method calculates the average result for each candidate in the earliest 30 polls
-        and the latest 30 polls, then returns the net change.
-
-        Returns:
-            tuple: A tuple containing the net change for Harris and Trump, in that order.
-                   Positive values indicate an increase, negative values indicate a decrease.
+        Compare earliest 30 polls vs latest 30 polls and return net change.
         """
-        pass
+        harris = self.data_dict['Harris result']
+        trump = self.data_dict['Trump result']
+
+        if len(harris) < 60:
+            return 0.0, 0.0
+
+        earliest_harris = sum(harris[:30]) / 30
+        latest_harris = sum(harris[-30:]) / 30
+        earliest_trump = sum(trump[:30]) / 30
+        latest_trump = sum(trump[-30:]) / 30
+
+        return (latest_harris - earliest_harris,
+                latest_trump - earliest_trump)
 
 
 class TestPollReader(unittest.TestCase):
