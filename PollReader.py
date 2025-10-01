@@ -84,9 +84,6 @@ class PollReader:
 
 
 class TestPollReader(unittest.TestCase):
-    """
-    Test cases for the PollReader class.
-    """
     def setUp(self):
         self.poll_reader = PollReader('polling_data.csv')
         self.poll_reader.build_data_dict()
@@ -121,7 +118,7 @@ class TestPollReader(unittest.TestCase):
 
 
 def main():
-    poll_reader = PollReader('polling_data.csv')
+    poll_reader = PollReader('/Users/annakerhoulas/SI201/DISCUSSION/dicussion-6-kerhoula/polling_data.csv')
     poll_reader.build_data_dict()
 
     highest_polling = poll_reader.highest_polling_candidate()
@@ -136,9 +133,7 @@ def main():
     print(f"Polling History Change:")
     print(f"  Harris: {harris_change:+.2%}")
     print(f"  Trump: {trump_change:+.2%}")
-
-
-
+    
 if __name__ == '__main__':
     main()
     unittest.main(verbosity=2)
