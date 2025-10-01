@@ -1,3 +1,5 @@
+#Name: Anna Kerhoulas
+
 import csv
 import unittest
 
@@ -133,7 +135,7 @@ def main():
     print(f"Polling History Change:")
     print(f"  Harris: {harris_change:+.2%}")
     print(f"  Trump: {trump_change:+.2%}")
-    
+
 if __name__ == '__main__':
     main()
     unittest.main(verbosity=2)
